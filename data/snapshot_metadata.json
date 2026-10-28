@@ -1,0 +1,36 @@
+{
+  "dataset_name": "Food Inspections",
+  "dataset_id": "4ijn-s7e5",
+  "portal_page": "https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5",
+  "api_endpoint": "https://data.cityofchicago.org/resource/4ijn-s7e5.json",
+  "downloaded_at_utc": "2026-10-12T02:58:23+00:00",
+  "portal_rows_updated_at_utc": "2026-10-11T09:06:02+00:00",
+  "requested_window": {
+    "start_date": "2016-01-01",
+    "end_date": "2026-10-30"
+  },
+  "row_count": 197882,
+  "columns": [
+    "Inspection ID",
+    "DBA Name",
+    "AKA Name",
+    "License #",
+    "Facility Type",
+    "Risk",
+    "Address",
+    "City",
+    "State",
+    "Zip",
+    "Inspection Date",
+    "Inspection Type",
+    "Results",
+    "Violations",
+    "Latitude",
+    "Longitude",
+    "Location"
+  ],
+  "csv_file": "food_inspections_2016-01-01_2026-10-30.csv",
+  "actual_first_date": "2016-01-04",
+  "actual_last_date": "2026-10-09",
+  "csv_sha256": "3b07cff5d52aeb8198f9879e361b2bc7575d8b7ed6a548429b2bb385ff44422d"
+}
