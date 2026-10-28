@@ -3,7 +3,6 @@
 第一版中文版 notebook（2026-10-28，已完成第一轮展示整理（保留完整分析））。已完成数据质量分析与 EDA，包含已运行的表格和图；**建模计划暂为空白，尚未训练模型，也未确定最终训练／验证／测试划分。**
 
 - [中文版 notebook](data_analysis_final_中文版.ipynb)：主要交付文件，可在 GitHub 预览或下载运行。
-- [HTML 阅读版](data_analysis_final_中文版_阅读版.html)：下载后用浏览器打开。
 - [压缩数据快照](data/food_inspections_snapshot.zip)与[元数据](data/snapshot_metadata.json)：用于复现本版本。
 
 ## 数据与分析口径

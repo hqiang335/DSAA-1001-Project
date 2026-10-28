@@ -3,3 +3,6 @@
 __pycache__/
 .venv/
 data/*.csv
+
+# Local reading export; do not publish
+data_analysis_final_中文版_阅读版.html
