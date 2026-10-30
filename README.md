@@ -1,62 +1,60 @@
-# DSAA1001：芝加哥食品安全检查分析
+# Chicago Food Inspections
 
-第一版中文版 notebook（2026-10-28，已完成第一轮展示整理（保留完整分析））。已完成数据质量分析与 EDA，包含已运行的表格和图；**已补入组员的英文 Modeling Plan（2026-10-30）；前面的数据质量分析与 EDA 保留中文。尚未训练模型，时间验证划分为计划中的方案。**
+The **final version** contains executed data-quality analysis, exploratory figures, and the team's Modeling Plan. No predictive models have been trained; the validation and model-comparison procedures remain proposed work.
 
-- [中文版 notebook](data_analysis_final_中文版.ipynb)：主要交付文件，可在 GitHub 预览或下载运行。
-- [压缩数据快照](data/food_inspections_snapshot.zip)与[元数据](data/snapshot_metadata.json)：用于复现本版本。
+- [Final version](data_analysis_final_version.ipynb): the submission notebook, with complete findings, limitations, and modelling implications.
+- [Chinese working notebook](data_analysis_final_中文版.ipynb): the retained discussion version, including the team's Modeling Plan.
+- [Data snapshot](data/food_inspections_snapshot.zip) and [metadata](data/snapshot_metadata.json): the fixed data used to reproduce the analysis.
 
-## 数据与分析口径
+## Data and Definitions
 
-数据来自 [Chicago Food Inspections](https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5)，于 2026-10-12 下载。请求范围为 2016-01-01 至 2026-10-30；实际快照为 **2016-01-04 至 2026-10-09，共 197,882 条记录、17 个字段**。文件名中的截止日期不代表已经包含该日期的数据。
+The source is [Chicago Food Inspections](https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5), downloaded on October 12, 2026. The requested range was January 1, 2016–October 30, 2026; the actual snapshot contains **197,882 records and 17 columns, from January 4, 2016 to October 9, 2026**. The filename's end date does not imply data coverage through that date.
 
-- 每条记录代表一次检查。失败率为 `Fail / (Fail + Pass + Pass w/ Conditions)`；其他结果不当作通过。
-- 身份相关分析使用有效许可证、规范化地址、DBA 和 AKA 的组合构造门店代理，不保证等同于真实经营主体。
-- 历史统计只取当前检查日期之前的数据，同日记录不互相借用结果；当次 `Violations` 不作为预测输入。
-- 当前 EDA 包含 2026 年；它已参与探索，不能称为完全未查看的独立测试集。所有关联均不直接代表因果或已验证的预测增益。
+- Each row represents an inspection. Failure rate is `Fail / (Fail + Pass + Pass w/ Conditions)`; other outcomes are not treated as passes.
+- Identity-based EDA uses valid license, normalized address, DBA, and AKA as an establishment proxy. This is not a verified business identity.
+- Historical EDA uses dates strictly before each current inspection; same-day records do not borrow outcomes from one another. Current `Violations` and its derived features are excluded from predictors.
+- EDA includes 2026. These explored records cannot be described as a completely unseen final test. Associations are not evidence of causality or validated predictive gains.
+- The team's Modeling Plan proposes valid `License #` as the primary history key, whereas the EDA uses the more conservative composite proxy. This identity-rule difference requires resolution before implementing the model.
 
-## 各部分做了什么
+## Notebook Sections
 
-| 章节 | 分析内容 |
+| Section | Purpose |
 |---|---|
-| 1. 数据来源与概况 | 读取快照，核查行列数、实际日期范围和关键字段。 |
-| 2. 数据质量分析 | 分别检查 Facility Type、Risk、AKA 缺失；检查文本类别不一致、许可证／地址歧义、地理信息、非二分类结果、预测泄漏和品牌名称不统一，最后汇总 problem、evidence、possible reason 与 modelling 影响。 |
-| 3.1 组间差异 | 比较 Facility Type、Inspection Type、Risk 的失败率，并解释对候选特征的启示。 |
-| 3.2 重复检查 | 用门店代理的不同检查日期统计重复观察次数，区分记录数量与门店数量。 |
-| 3.3 品牌候选 | 通过 DBA／AKA 名称规则识别六个品牌候选，比较门店内部差异及不同加权均值，报告样本筛选限制。 |
-| 3.4 时间变化 | 展示年度统计、月度检查数与失败率；核查 2018 年制度变化，讨论疫情背景和面向未来的时间验证。 |
-| 3.5 检查历史 | 分析累计历史失败率、上次结果和当前检查流程、距上次检查的间隔；讨论历史特征与时间边界。 |
-| 3.6 空间分布 | 核查全量地理字段完整性；对照门店覆盖、检查加权失败率与门店等权失败率，提出坐标相对 ZIP 的增量验证方向。 |
-| 4. Modeling Plan（英文） | 定义预测目标、Logistic Regression 基线、历史特征、时间验证、特征组消融和 Macro-F1 等评价指标。 |
+| 1. Data Source and Overview | Read the snapshot and verify dimensions, actual date coverage, and key fields. |
+| 2. Data Quality Analysis | Examine missing Facility Type, Risk, and AKA separately; review category formatting, identity ambiguity, geography, target outcomes, leakage, and brand-name variants. Summarize problem, evidence, possible reason, and effect on modelling. |
+| 3.1 Group Differences | Compare Facility Type, Inspection Type, and Risk failure rates and their relevance as candidate features. |
+| 3.2 Repeated Inspections | Count distinct observed dates per establishment proxy and assess history coverage. |
+| 3.3 Brand Candidates | Compare within-brand proxy distributions and weighting choices for six name-matched brands, with coverage limitations. |
+| 3.4 Temporal Change | Present annual counts and monthly volume/rates, discuss the 2018 reform and pandemic context, and motivate temporal validation. |
+| 3.5 Inspection History | Examine historical failure rates, previous outcomes alongside current inspection processes, and inspection intervals. |
+| 3.6 Spatial Distribution | Compare establishment coverage, inspection-weighted rates, and equal-proxy rates; propose testing coordinates beyond ZIP. |
+| 4. Modeling Plan | Define the target, Logistic Regression baseline, historical features, temporal validation, feature ablation, and Macro-F1 evaluation. |
 
-## 图表登记
+## Figure Register
 
-编号与 notebook 一致；图 11 包含三个子图。
+Numbering matches the notebook. Figure 11 contains three panels.
 
-| 图 | 表达的含义与主要阅读要点 |
+| Figure | Meaning and interpretation |
 |---|---|
-| 1：Facility Type | 检查数最多的八种经营类型的失败率。比较类型差异，不能由此直接判断最终预测贡献。 |
-| 2：Inspection Type | 检查数最多的八种检查类型的失败率。检查原因与流程可能关联结果。 |
-| 3：Risk | 三种监管风险等级的失败率。Risk 不是历史卫生表现评分。 |
-| 4：重复检查日期数 | 每个门店代理被观察到的不同检查日期数量分布。用于理解重复记录和历史信息覆盖。 |
-| 5：品牌内部差异 | 蓝点表示门店代理失败率，橙色菱形为检查加权均值，空心圆为代理等权均值。仅保留至少 15 条有标签检查的代理、至少 8 个合格代理的品牌；品牌均值不能代表每家门店。 |
-| 6：月度检查数量 | 全部检查记录的逐月数量，标记 2018 年改制及 2020–2021 年。避免将数量变化直接解释为制度或疫情的因果影响。 |
-| 7：月度失败率 | 逐月失败率及图中时期的总体检查加权基准。图 6、7 均截至 2026 年 9 月，不连接不完整的 10 月。 |
-| 8（历史 A）：累计历史失败率 | 至少有 5 条有标签历史检查时，比较不同历史失败比例下的当前失败率。历史越多不自动意味着统计显著性更强。 |
-| 9（历史 B）：上次结果与当前检查类型 | 按上次 Fail／非 Fail、当前复查／非复查拆分失败率，区分历史信号与检查流程。 |
-| 10（历史 C）：检查间隔 | 比较不同间隔下的当前失败率，并给出非复查对照。关联不严格单调，不能解释为门店重视或松懈的证据。 |
-| 11A：门店覆盖地图 | 约 2 km 网格中的不同门店代理数，使用对数色标；不是检查次数或全部在营门店密度。 |
-| 11B：检查加权失败率地图 | 每条检查权重相同，失败次数除以有标签检查次数；与单次检查预测对象一致。 |
-| 11C：门店等权失败率地图 | 先算每个代理失败率，再取平均，用于检查空间结论对高频受检门店是否敏感；不是“纠正后的真实风险”。 |
+| 1. Facility Type | Failure rates for the eight largest facility categories. Differences motivate candidate features but do not establish predictive contribution. |
+| 2. Inspection Type | Failure rates for the eight largest inspection categories. Inspection reasons and processes are associated with outcomes. |
+| 3. Risk | Failure rates for three regulatory classifications. Risk is not a historical hygiene-performance score. |
+| 4. Repeated Inspection Dates | Distribution of distinct inspection dates per proxy, showing repeated observation and potential history coverage. |
+| 5. Within-Brand Variation | Blue dots are proxy failure rates; orange diamonds are inspection-weighted means; hollow circles are equal-proxy means. Requires at least 15 labelled records per proxy and eight eligible proxies per brand. Brand averages do not represent every branch. |
+| 6. Monthly Inspection Volume | All inspection records by month, marking the 2018 reform and 2020–2021. Temporal coincidence does not establish causality. |
+| 7. Monthly Failure Rate | Monthly failure rates and the inspection-weighted reference for the plotted period. Figures 6–7 end in September 2026, excluding incomplete October. |
+| 8 (History A). Historical Failure Rate | Current rates by prior failure-rate group, requiring at least five prior labelled inspections. More history does not automatically establish stronger statistical significance. |
+| 9 (History B). Previous Outcome and Current Process | Failure rates by previous Fail/non-Fail and current reinspection/non-reinspection, separating historical associations from process composition. |
+| 10 (History C). Inspection Interval | Current failure rates across time gaps, with a non-reinspection comparison. The association is not strictly monotonic and does not demonstrate diligence or complacency. |
+| 11A. Establishment Coverage | Distinct observed proxies per approximately 2 km cell, on a logarithmic scale; not inspection volume or the density of all operating establishments. |
+| 11B. Inspection-Weighted Failure Rate | Failures divided by labelled inspections, giving each inspection equal weight and matching an inspection-level prediction task. |
+| 11C. Equal-Proxy Failure Rate | Average of individual proxy rates, assessing sensitivity to frequent inspections; not a corrected true-risk estimate. |
 
-图 11B／C 使用相同网格、相同记录与相同色标，每格至少 100 条有标签检查、30 个门店代理；灰色为未达门槛，白色为没有观察记录。**本次上传忠实保留当前 notebook 的 2 km 三联图；1 km 预览及仅保留 A／B 的讨论尚未应用于此版本。**
+Maps 11B/C use identical cells, records, and colour scales. Each displayed cell requires at least 100 labelled inspections and 30 proxies. Grey means insufficient support; white means no observations. Neither means zero risk. The notebook retains the 2 km three-panel comparison.
 
-## 展示精简说明
+## Reproduce the Analysis
 
-保留原有 11 张编号图与统计口径，减少重复表格和零碎输出，保留逐项数据质量解释及各节“发现／建模启示”的完整论证；总结表用于回顾。参考资料采用在线链接；仓库仅保留主 notebook、README、数据快照、依赖文件和 Git 忽略规则。
-
-## 本地运行
-
-建议使用 Python 3.12。在仓库根目录执行：
+Use Python 3.12 and run these commands from the repository root:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -64,6 +62,6 @@ python -m zipfile -e data/food_inspections_snapshot.zip data/
 jupyter lab
 ```
 
-打开 `data_analysis_final_中文版.ipynb`，选择 Python 内核并运行全部单元。notebook 使用相对路径读取解压后的 CSV，无须在线下载数据；压缩包解压后约 206 MiB。元数据提供原 CSV 的 SHA-256。重新从门户下载可能得到更新后的记录，结果不一定与本快照一致。
+Open `data_analysis_final_version.ipynb`, select a Python kernel, and run all cells. It reads the extracted CSV through a relative path and does not download live data. Extraction requires approximately 206 MiB. The metadata includes the original CSV SHA-256; a fresh portal download may contain revised records and produce different results.
 
-本版已验证 56 个代码块无报错，并检查图表输出；README 的图表登记对应本次上传文件。前面的中文说明尚未翻译；末尾英文 Modeling Plan 按组员 Notion 原文加入。
+The final version has 56 executed code cells and 11 numbered figures. Its numerical analysis and figures are retained from the Chinese working notebook; narrative and the interval sample-size note are translated. HTML previews and supporting research files remain local and are not included in this repository.
