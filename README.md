@@ -1,6 +1,6 @@
 # Chicago Food Inspections
 
-The **final version** contains executed data-quality analysis, exploratory figures, and the team's Modeling Plan. No predictive models have been trained; the validation and model-comparison procedures remain proposed work.
+The **final version** contains executed data-quality analysis, exploratory figures, and the team's Modeling Plan. Phase 2 experiments are in `temporal_modeling.ipynb`. Run All from the repository root, or run `python temporal_modeling.py` offline after installing the requirements. The experiments read the tracked ZIP directly and verify its CSV checksum.
 
 - [Final version](data_analysis_final_version.ipynb): the submission notebook, with complete findings, limitations, and modelling implications.
 - [Chinese working notebook](data_analysis_final_中文版.ipynb): the retained discussion version, including the team's Modeling Plan.
@@ -14,7 +14,7 @@ The source is [Chicago Food Inspections](https://data.cityofchicago.org/Health-H
 - Identity-based EDA uses valid license, normalized address, DBA, and AKA as an establishment proxy. This is not a verified business identity.
 - Historical EDA uses dates strictly before each current inspection; same-day records do not borrow outcomes from one another. Current `Violations` and its derived features are excluded from predictors.
 - EDA includes 2026. These explored records cannot be described as a completely unseen final test. Associations are not evidence of causality or validated predictive gains.
-- The team's Modeling Plan proposes valid `License #` as the primary history key, whereas the EDA uses the more conservative composite proxy. This identity-rule difference requires resolution before implementing the model.
+- The team's Modeling Plan proposes valid `License #` as the primary history key, whereas the EDA uses the more conservative composite proxy. Phase 2 follows the Modeling Plan and matches history by valid license only.
 
 ## Notebook Sections
 
