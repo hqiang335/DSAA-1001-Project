@@ -65,3 +65,21 @@ jupyter lab
 Open `data_analysis_final_version.ipynb`, select a Python kernel, and run all cells. It reads the extracted CSV through a relative path and does not download live data. Extraction requires approximately 206 MiB. The metadata includes the original CSV SHA-256; a fresh portal download may contain revised records and produce different results.
 
 The final version has 56 executed code cells and 11 numbered figures. Its numerical analysis and figures are retained from the Chinese working notebook; narrative and the interval sample-size note are translated. HTML previews and supporting research files remain local and are not included in this repository.
+
+
+## Workbench experiment plan
+
+`experiment_plan.ipynb` opens the recorded results. Recompute the three historical
+folds with `python experiment_plan.py` after installing `requirements.txt`. The
+command verifies the repository snapshot, fits the 20 configurations, and writes
+`experiment_plan_results.json.gz`. It evaluates 2023–2025 only. The default 2023
+threshold is 0.50, while 2024–2025 use only earlier validation folds for thresholds
+and blend weights. Evidence covers the planned D0/M0–M12 configurations and six
+controlled follow-up configurations (A0–A5). These IDs refer to the workbench plan;
+the earlier notebook used M0–M2 as feature-set labels.
+
+The comparison uses batch-like feature availability. The first day of each
+window freezes the labeled history, and per-date training features can reference
+only earlier dates. M9 requires both a valid license and a normalized address to
+match history. The displayed subgroups use the same license-level definition
+throughout, and M9 separately reports its composite-key coverage.

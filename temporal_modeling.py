@@ -22,9 +22,9 @@ MISSING = "__missing__"
 THRESHOLDS = np.arange(10, 61, 2) / 100
 
 
-def read_snapshot():
+def read_snapshot(*, extra_columns=(), end="2026-07-01"):
     metadata = json.loads(Path("data/snapshot_metadata.json").read_text())
-    columns = CONTEXT + ["Inspection ID", "Inspection Date", "License #", "Results"]
+    columns = CONTEXT + ["Inspection ID", "Inspection Date", "License #", "Results"] + list(extra_columns)
     with ZipFile("data/food_inspections_snapshot.zip") as archive:
         name = metadata["csv_file"]
         with archive.open(name) as raw:
@@ -38,7 +38,7 @@ def read_snapshot():
     if len(frame) != metadata["row_count"]:
         raise ValueError("Snapshot row count differs from the project metadata")
     frame["date"] = pd.to_datetime(frame["Inspection Date"], format="%m/%d/%Y")
-    frame = frame.loc[frame["date"].lt("2026-07-01")].drop_duplicates()
+    frame = frame.loc[frame["date"].lt(end)].drop_duplicates()
     if frame["Inspection ID"].isna().any() or frame["Inspection ID"].duplicated().any():
         raise ValueError("Missing or conflicting inspection IDs")
     for column in CONTEXT:
