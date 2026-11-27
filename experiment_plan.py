@@ -170,19 +170,19 @@ def model_probabilities(code, train, val, cutoff):
     return model.predict_proba(val_data)[:, 1]
 
 
-def choose_blend(left, right):
+def choose_blend(left, right, select_threshold=best_threshold):
     """Require unique correct classifications from both parents on earlier folds."""
     if left.empty:
         return 1.0, 0.5, None
-    a = left["probability"].ge(best_threshold(left))
-    b = right["probability"].ge(best_threshold(right))
+    a = left["probability"].ge(select_threshold(left))
+    b = right["probability"].ge(select_threshold(right))
     y = left["y"].astype(bool)
     unique = (int((a.eq(y) & b.ne(y)).sum()), int((b.eq(y) & a.ne(y)).sum()))
     options = (0, .25, .5, .75, 1) if all(unique) else (0, 1)
     scored = []
     for weight in options:
         blend = left.assign(probability=weight * left["probability"] + (1 - weight) * right["probability"])
-        threshold = best_threshold(blend)
+        threshold = select_threshold(blend)
         scored.append((metrics(blend, threshold)["macro_f1"], weight in (0, 1), weight, threshold))
     _, _, weight, threshold = max(scored)
     return weight, threshold, unique
@@ -212,13 +212,14 @@ def as_validation(val, probabilities):
     )
 
 
-def experiment_folds(frame, periods):
-    earlier = {key: [] for key in PLAN}
+def experiment_folds(frame, periods, *, plan=PLAN, predictive=model_probabilities,
+                     select_threshold=best_threshold, record_default=False):
+    earlier = {key: [] for key in plan}
     results = []
     for fold, cutoff, end in periods:
         train, val, composite_train, composite_val = fold_features(frame, cutoff, end)
         current = {}
-        for code in PLAN:
+        for code in plan:
             duration = perf_counter()
             start = str(frame["date"].min().date())
             selected_train = train
@@ -226,10 +227,10 @@ def experiment_folds(frame, periods):
                 start = str((pd.Timestamp(cutoff) - pd.DateOffset(years=WINDOWS[code])).date())
                 selected_train = train.loc[train["date"].ge(start)]
             prior = pd.concat(earlier[code], ignore_index=True) if earlier[code] else pd.DataFrame()
-            threshold = best_threshold(prior) if len(prior) and code != "D0" else .5
+            threshold = select_threshold(prior) if len(prior) and code != "D0" else .5
             extras = {}
             if code == "M9":
-                data = as_validation(val, model_probabilities(code, composite_train, composite_val, cutoff))
+                data = as_validation(val, predictive(code, composite_train, composite_val, cutoff))
                 extras["composite_history_count"] = int(composite_val["has_history"].sum())
             elif code == "M11":
                 data = as_validation(val, np.nan)
@@ -241,7 +242,7 @@ def experiment_folds(frame, periods):
             elif code == "M12":
                 left = pd.concat(earlier["M4"][:-1], ignore_index=True) if len(earlier["M4"]) > 1 else pd.DataFrame()
                 right = pd.concat(earlier["M8"][:-1], ignore_index=True) if len(earlier["M8"]) > 1 else pd.DataFrame()
-                weight, threshold, unique = choose_blend(left, right)
+                weight, threshold, unique = choose_blend(left, right, select_threshold)
                 extras = dict(lightgbm_weight=weight, earlier_unique_correct=unique)
                 data = current["M4"].assign(
                     probability=weight * current["M4"]["probability"] + (1 - weight) * current["M8"]["probability"],
@@ -249,7 +250,7 @@ def experiment_folds(frame, periods):
             elif code == "A3":
                 data = current["A0"]
                 cold = prior.loc[prior["has_history"].eq(0)] if len(prior) else prior
-                extras["cold_threshold"] = best_threshold(cold) if len(cold) else threshold
+                extras["cold_threshold"] = select_threshold(cold) if len(cold) else threshold
             elif code == "A4":
                 data = current["A0"].assign(
                     probability=current["A0"]["probability"].where(
@@ -257,7 +258,7 @@ def experiment_folds(frame, periods):
                     ),
                 )
             else:
-                data = as_validation(val, model_probabilities(code, selected_train, val, cutoff))
+                data = as_validation(val, predictive(code, selected_train, val, cutoff))
             if data["probability"].isna().any():
                 raise ValueError(f"Missing predictions for {code}, {fold}")
             current[code] = data
@@ -270,8 +271,8 @@ def experiment_folds(frame, periods):
                 # Use the parent models' own earlier validation thresholds unchanged.
                 m1 = pd.concat(earlier["A0"][:-1], ignore_index=True)
                 m0 = pd.concat(earlier["M0"][:-1], ignore_index=True)
-                threshold = best_threshold(m1)
-                extras["cold_threshold"] = best_threshold(m0)
+                threshold = select_threshold(m1)
+                extras["cold_threshold"] = select_threshold(m0)
                 threshold_by_row = pd.Series(threshold, index=data.index).where(
                     data["has_history"].eq(1), extras["cold_threshold"],
                 )
@@ -279,6 +280,8 @@ def experiment_folds(frame, periods):
                 threshold_by_row = threshold
             if code == "A4" and not len(prior):
                 extras["cold_threshold"] = .5
+            if record_default and len(prior):
+                extras["default_metrics"] = metrics(data, .5)
             results.append(dict(code=code, fold=fold, train_start=start,
                                 train_end=str((pd.Timestamp(cutoff) - pd.Timedelta(days=1)).date()),
                                 val_start=cutoff, val_end=str((pd.Timestamp(end) - pd.Timedelta(days=1)).date()),

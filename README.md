@@ -83,3 +83,28 @@ window freezes the labeled history, and per-date training features can reference
 only earlier dates. M9 requires both a valid license and a normalized address to
 match history. The displayed subgroups use the same license-level definition
 throughout, and M9 separately reports its composite-key coverage.
+
+## Threshold selection and class imbalance
+
+Run `python lab8_validation.py` to rebuild `lab8_results.json.gz` and open
+`lab8_validation.ipynb` for the threshold curves and model comparisons.
+The 2022 out-of-time predictions calibrate the 2023 fold. Subsequent folds pool
+all earlier calibration predictions. Every fitted configuration uses the same
+0.02–0.98 grid with 0.01 steps and maximizes calibration Macro-F1. The D0
+majority-class reference stays constant. Its replay at 0.50 is descriptive,
+as are the fixed-0.50 comparisons for the other models.
+
+B1, B2 and B3 keep the M4 feature set and change class weights, random
+undersampling or SMOTENC. The latter preserves nominal categories, while
+interpolated counts and other numeric fields are synthetic. Resampling occurs
+after train-only preprocessing and historical feature construction, and never
+affects the calibration or evaluation sample distributions. R0 and R1 compare
+ordinary and balanced-subsample Random Forest on the same features. Historical
+folds follow full-day calendar boundaries.
+
+When the course provides the unlabeled test CSV, generate the submission locally
+with `python predict_official.py TEST.csv --model MODEL --threshold THRESHOLD`.
+Supply the already locked model ID and threshold from validation. The script
+checks the official date window and unique IDs, rejects a Results column, and
+writes `Inspection ID,pred_fail` in input order. The bundled permitted snapshot
+ends on October 9, 2026.

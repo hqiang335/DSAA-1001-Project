@@ -144,19 +144,19 @@ def metrics(data, threshold):
                 tn=tn, fp=fp, fn=fn, tp=tp)
 
 
-def best_threshold(data):
+def best_threshold(data, thresholds=THRESHOLDS):
     y = data["y"].to_numpy(dtype=bool)
     p = data["probability"].to_numpy()
-    pred = p[:, None] >= THRESHOLDS
+    pred = p[:, None] >= thresholds
     tp = np.count_nonzero(pred[y], axis=0)
     tn = np.count_nonzero(~pred[~y], axis=0)
     errors = len(y) - tp - tn
-    pass_f1 = np.divide(2 * tn, 2 * tn + errors, out=np.zeros_like(THRESHOLDS),
+    pass_f1 = np.divide(2 * tn, 2 * tn + errors, out=np.zeros_like(thresholds),
                         where=(2 * tn + errors) > 0)
-    fail_f1 = np.divide(2 * tp, 2 * tp + errors, out=np.zeros_like(THRESHOLDS),
+    fail_f1 = np.divide(2 * tp, 2 * tp + errors, out=np.zeros_like(thresholds),
                         where=(2 * tp + errors) > 0)
-    order = np.lexsort((abs(THRESHOLDS - 0.5), -(pass_f1 + fail_f1)))
-    return float(THRESHOLDS[order[0]])
+    order = np.lexsort((abs(thresholds - 0.5), -(pass_f1 + fail_f1)))
+    return float(thresholds[order[0]])
 
 
 def predict_fold(train, val, algorithm, feature_set, start_year):
